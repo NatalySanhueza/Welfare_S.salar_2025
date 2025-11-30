@@ -1,0 +1,134 @@
+INSTRUCCIONES PARA EJECUTAR LOS ANÁLISIS (Windows PowerShell)
+
+Resumen
+- Repositorio: carpeta raíz donde está este archivo.
+- Entorno recomendado: un entorno virtual de Python (venv) dentro del proyecto (.venv).
+- Scripts de interés:
+  - `scripts/run_DNA_damage.py`
+  - `scripts/run_cumulative_welfare.py`
+- Salidas (por defecto):
+  - `Output/Results_DNA_damage/`
+  - `Output/Results_Cumulative_welfare/`
+
+1) Abrir PowerShell y situarse en la raíz del repositorio
+- Abre PowerShell y cambia al directorio del proyecto (ejemplo):
+
+```powershell
+cd 'C:\Users\Nataly\OneDrive\Welfare_S.salar_2025'
+```
+
+2) Crear y activar un entorno virtual (venv)
+- Crear el venv:
+
+```powershell
+python -m venv .venv
+```
+
+- Activar el venv en PowerShell (primera vez puede pedir cambiar la política de ejecución; ver nota debajo):
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+- Si al activar recibes un error por ExecutionPolicy, ejecuta (sólo en la sesión actual):
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+.\.venv\Scripts\Activate.ps1
+```
+
+3) Actualizar pip e instalar dependencias
+- Actualiza pip:
+
+```powershell
+python -m pip install --upgrade pip
+```
+
+- Si tienes un `requirements.txt` en la raíz del proyecto (recomendado):
+
+```powershell
+pip install -r requirements.txt
+```
+
+- Si no lo tienes, instala las dependencias más usadas por este repo (ejemplo):
+
+```powershell
+pip install pandas numpy matplotlib seaborn scipy statsmodels scikit-learn scikit-posthocs openpyxl
+```
+
+- Para generar un `requirements.txt` con las versiones instaladas (opcional):
+
+```powershell
+pip freeze > requirements.txt
+```
+
+4) Nota sobre backend de Matplotlib (entorno sin GUI)
+- En servidores o cuando no hay entorno gráfico, conviene usar el backend `Agg` para que los scripts puedan guardar figuras sin intentar abrir ventanas.
+- En PowerShell puedes forzar el backend en la misma línea que ejecutas Python:
+
+```powershell
+$env:MPLBACKEND='Agg'; & '.\.venv\Scripts\python.exe' -u scripts/run_DNA_damage.py
+```
+
+5) Ejecutar los análisis (ejemplos)
+- Ambos análisis funcionan de la misma manera: simplemente ejecutar el script sin parámetros.
+- Las salidas se guardan automáticamente en sus carpetas correspondientes.
+- Las figuras se guardan pero NO se muestran por pantalla.
+
+- DNA Damage (guarda resultados en `Output/Results_DNA_damage`):
+
+```powershell
+$env:MPLBACKEND='Agg'; & '.\.venv\Scripts\python.exe' -u scripts/run_DNA_damage.py
+```
+
+- Cumulative Welfare (guarda resultados en `Output/Results_Cumulative_welfare`):
+
+```powershell
+$env:MPLBACKEND='Agg'; & '.\.venv\Scripts\python.exe' -u scripts/run_cumulative_welfare.py
+```
+
+- Si prefieres comandos más cortos (una vez activado el venv):
+
+```powershell
+$env:MPLBACKEND='Agg'; python -u scripts/run_DNA_damage.py
+$env:MPLBACKEND='Agg'; python -u scripts/run_cumulative_welfare.py
+```
+
+6) Verificar resultados generados
+- Listar archivos generados para DNA Damage:
+
+```powershell
+Get-ChildItem -Path .\Output\Results_DNA_damage -File
+```
+
+- Listar archivos generados para Cumulative Welfare:
+
+```powershell
+Get-ChildItem -Path .\Output\Results_Cumulative_welfare -File
+```
+
+7) Comprobaciones rápidas (diagnóstico)
+- Ver que Python usado sea el del venv:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import sys; print(sys.executable)"
+```
+
+- Comprobar que el script importa bien los módulos: ejecutar un import simple
+
+```powershell
+.\.venv\Scripts\python.exe -c "import src.DNA_Damage; print('DNA_Damage import OK')"
+```
+
+8) Problemas frecuentes y soluciones
+- Error de import (ModuleNotFoundError): asegúrate de ejecutar desde la raíz del repo y de que `sys.path` permite importar `src/` (los scripts están preparados para ello). Ejecuta los comandos desde la carpeta que contiene `src/`.
+- Errores por falta de paquetes: activa el venv e instala las dependencias con `pip install`.
+- Errores de permisos al guardar archivos: verifica que PowerShell y OneDrive no estén bloqueando la escritura; intenta ejecutar PowerShell como usuario con permisos y/o desactivar sincronización temporalmente.
+
+9) Recomendaciones finales
+- Mantén un `requirements.txt` en la raíz con versiones fijas para reproducibilidad.
+- Ejecuta los análisis desde la raíz del repositorio y usando el `python` del venv (ej.: ` .\.venv\Scripts\python.exe ...`).
+- Si necesitas que automatice la ejecución de alguno de los scripts ahora (ejecución de prueba y listado de archivos generados), dime cuál y lo ejecuto.
+
+---
+Archivo generado automáticamente: RUN_INSTRUCTIONS.txt

@@ -1,4 +1,12 @@
-# Las clases están en src\Mortality.py y los datos en Data\Mortality\Mortality.xlsx
+"""
+Automated analysis script for Mortality and Survival Assessment.
+
+All statistical comparisons and visualizations are performed systematically without manual intervention.
+Group labels (RTR, WTR) are processed as categorical variables without prior interpretation,
+ensuring operational blinding and minimizing manual bias in the analysis pipeline.
+"""
+
+
 from pathlib import Path
 import sys
 

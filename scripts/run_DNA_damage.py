@@ -1,4 +1,12 @@
-# las clases están en src\DNA_Damage.py y los datos en Data\DNA_Damage
+"""
+Automated analysis script for DNA Damage Assessment.
+
+All statistical comparisons and visualizations are performed systematically without manual intervention.
+Group labels (RTR, WTR) are processed as categorical variables without prior interpretation,
+ensuring operational blinding and minimizing manual bias in the analysis pipeline.
+"""
+
+
 
 from pathlib import Path
 import sys
@@ -50,5 +58,4 @@ pre_analysis.variable_relationship_analysis(relationship_numeric_variables, rela
 ###########################################################################################################################
 
 wf_analyze = Long_welfare_analysis(dna_data, wf_measures, pre_analysis)
-#variables = ['RTL_FC', '5_mC_ng_FC', '8_OHdG_ng_FC']
 wf_analyze.process_Long_welfare()

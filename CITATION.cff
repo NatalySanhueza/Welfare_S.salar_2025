@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite it as below."
+type: software
+title: "Behavioral Thermoregulation Influences Cumulative Welfare in Atlantic Salmon (Salmo salar)"
+abstract: "Automated analysis pipeline for comprehensive welfare assessment in Atlantic salmon (Salmo salar) subjected to different thermal regimes. Includes analyses of DNA damage, oxidative stress, growth patterns, mortality, thermoregulatory behavior, and cumulative welfare indices."
+authors:
+  - family-names: "Sanhueza"
+    given-names: "Nataly"
+    orcid: "https://orcid.org/0000-0002-1761-1268"
+    email: "natalysanhueza@udec.cl"
+repository-code: "https://github.com/NatalySanhueza/Welfare_S.salar_2025"
+keywords:
+  - Atlantic salmon
+  - Salmo salar
+  - welfare assessment
+  - thermal regime
+  - DNA damage
+  - oxidative stress
+  - growth modeling
+  - survival analysis
+  - thermoregulatory behavior
+  - aquaculture
+  - fish welfare
+license: CC-BY-4.0
+version: 1.0.0
+date-released: 2025-11-30

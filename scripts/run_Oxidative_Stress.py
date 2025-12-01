@@ -1,7 +1,15 @@
+"""
+Automated analysis script for Oxidative Stress Assessment.
+
+All statistical comparisons and visualizations are performed systematically without manual intervention.
+Group labels (RTR, WTR) are processed as categorical variables without prior interpretation,
+ensuring operational blinding and minimizing manual bias in the analysis pipeline.
+"""
+
 import sys
 from pathlib import Path
 
-# Las clases están en src\Oxidative_Stress.py y los datos en Data\Oxidative_Stress
+
 repo_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(repo_root))
 

@@ -1,9 +1,12 @@
-#Las clases están en src\Cumulative_welfare.py y los datos en Data\Cumulative_Welfare
 """
-Clase data_processing carga y muestra los datos de entrada. Luego, realiza una descripción y analisis exploratorio
-(normalidad, homocedasticidad y relationship) a las variables dependientes
+Automated analysis script for Cumulative Welfare Assessment.
+
+All statistical comparisons and visualizations are performed systematically without manual intervention.
+Group labels (RTR, WTR) are processed as categorical variables without prior interpretation,
+ensuring operational blinding and minimizing manual bias in the analysis pipeline.
+
 """
-# Parametros Clase
+
 from pathlib import Path
 import sys
 import matplotlib.pyplot as plt
@@ -108,7 +111,7 @@ fills = {'RTR': '#CFFFFF', 'WTR': '#FFDAB8'}
 tissue_colors = {'brain': '#A882DD', 'muscle': '#D83F87', 'all_data':'#AD8CFF'}
 
 #Instancia de la clase
-var_import = ['Cumulative_Mortality', 'RTL', 'mC', 'OHdG'] #para filtar las variables para el analisis de random forest y Lasso
+var_import = ['Cumulative_Mortality', 'RTL', 'mC', 'OHdG'] 
 # use the class from the imported module
 cw = cw_mod.cumulative_welfare(pre_analysis, data, colors, fills, var_import)
 

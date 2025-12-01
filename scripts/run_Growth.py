@@ -1,10 +1,15 @@
-
-#Las clases están en src\Growth.py y los datos en Growth\Growth_SD.xlsx
-
 """
+Automated analysis script for Growth Assessment using Non-Linear Models.
+
+All statistical comparisons and visualizations are performed systematically without manual intervention.
+Group labels (RTR, WTR) are processed as categorical variables without prior interpretation,
+ensuring operational blinding and minimizing manual bias in the analysis pipeline.
+
 Clase data_processing carga y muestra los datos de entrada. Luego, realiza una descripción y analisis exploratorio
 (normalidad, homocedasticidad y relationship) a las variables dependientes
 """
+
+
 from pathlib import Path
 import sys
 

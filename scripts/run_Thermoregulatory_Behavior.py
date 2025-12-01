@@ -1,8 +1,14 @@
-# las clases están en src\Thermoregulatory_Behavior.py y los datos en Data\Thermoregulatory_Behavior
 """
+Automated analysis script for Thermoregulatory Behavior Assessment.
+
+All statistical comparisons and visualizations are performed systematically without manual intervention.
+Group labels (RTR, WTR) are processed as categorical variables without prior interpretation,
+ensuring operational blinding and minimizing manual bias in the analysis pipeline.
+
 Clase ThermoregulationDataProcessor carga y muestra los datos de entrada. Luego establece nuevas variables independientes
-categoricas y calcula las variables dependientes
+categoricas y calcula las variables dependientes.
 """
+
 import sys
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -29,10 +35,7 @@ processor.process_data()
 output_dir = repo_root / 'Output' / 'Results_Thermoregulatory_Behavior'
 output_dir.mkdir(parents=True, exist_ok=True)
 
-"""
-Clase Data_pre_analysis toma y muestra las variables obtenidas de la clase ThermoregulationDataProcessor. Luego, realiza una
-descripción y analisis exploratorio (normalidad, homocedasticidad y relationship) a las variables dependientes
-"""
+
 
 print("\n-----------------------------------Descripción Variables-------------------------------------------")
 print("\n")
@@ -60,10 +63,7 @@ relationship_categorical_variable = 'Treatment'
 #pre_analysis.variable_relationship_analysis(relationship_numeric_variables, relationship_categorical_variable)
 
 ##########################################################################################################################
-"""
-Clase termoregulation_analysis describe la distribución de los peces dentro de los estanques mediante la determinación de
-la densidad de kernel,realiza análisis estadísticos y gráficos de los resultados
-"""
+
 analysis = termoregulation_analysis(processor, pre_analysis)
 analysis.output_dir = output_dir
 

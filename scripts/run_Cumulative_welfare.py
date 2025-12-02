@@ -11,36 +11,30 @@ from pathlib import Path
 import sys
 import matplotlib.pyplot as plt
 
-# Path handling: build paths relative to repository root
 repo_root = Path(__file__).resolve().parent.parent
-# Make sure src/ is importable when running scripts directly
+
 sys.path.insert(0, str(repo_root))
 
-# Fixed paths
+
 file_path = repo_root / 'Data' / 'Cumulative_welfare' / 'Cumulative_Welfare.xlsx'
 output_dir = repo_root / 'Output' / 'Results_Cumulative_welfare'
 colors = {'RTR': '#00AFBB', 'WTR': '#FFA040'}
 fills = {'RTR': '#CFFFFF', 'WTR': '#FFDAB8'}
 tissue_colors = {'brain': '#A882DD', 'muscle': '#D83F87', 'all_data':'#AD8CFF'}
 
-# Import processing classes from src and ensure module-level color variables exist
 from src import Cumulative_welfare as cw_mod
 
-# set module-level color globals expected by the classes in src/Cumulative_welfare.py
 cw_mod.colors = colors
 cw_mod.fills = fills
 cw_mod.tissue_colors = tissue_colors
 
-#Instancia de la clase data_processing
 pre_analysis = cw_mod.data_processing(str(file_path))
 
 print("\n--------------------------Datos entrada (origen) y Descripción Variables-----------------------------------------")
 print("\n")
 
-# Load data
 pre_analysis.load_data()
 
-#Parámetros métodos 
 variables = ['Time', 'Group', 'Tissue', 'Replicate', 'Survival_Probability', 'Cumulative_Mortality', 'Body_Mass', 'RTL', 'mC', 'OHdG']
 var_numeric = ['Time', 'Survival_Probability', 'Cumulative_Mortality', 'Body_Mass', 'RTL', 'mC', 'OHdG']
 z_score = 3
@@ -103,19 +97,16 @@ pre_analysis.ancova_analysis(numeric_variables = dependent_variables,
 
 
 data = pre_analysis.df_clean if pre_analysis.df_clean is not None else pre_analysis.df
-#data = data[data['Tissue'] == 'muscle']
 
 colors = {'RTR': '#00AFBB', 'WTR': '#FFA040'}
 fills = {'RTR': '#CFFFFF', 'WTR': '#FFDAB8'}
 
 tissue_colors = {'brain': '#A882DD', 'muscle': '#D83F87', 'all_data':'#AD8CFF'}
 
-#Instancia de la clase
 var_import = ['Cumulative_Mortality', 'RTL', 'mC', 'OHdG'] 
-# use the class from the imported module
+
 cw = cw_mod.cumulative_welfare(pre_analysis, data, colors, fills, var_import)
 
-#Parámetros métodos
 variables = ['Time', 'Group', 'Tissue', 'Replicate', 'Survival_Probability', 'Cumulative_Mortality', 'Body_Mass', 'RTL', 'mC', 'OHdG']
 variables_dependientes = ['Survival_Probability', 'Cumulative_Mortality', 'Body_Mass', 'RTL', 'mC', 'OHdG']
 Variables_independientes = ['Time', 'Group', 'Tissue']
@@ -151,7 +142,6 @@ print(len(index_data))
 index_data.items()
 
 
-# Save PCA contributions if available
 try:
     if pca_contribution is not None:
         pca_contribution.to_excel(output_dir / 'PCA_contributions.xlsx', index=False)

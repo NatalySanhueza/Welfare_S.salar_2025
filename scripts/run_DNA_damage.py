@@ -11,9 +11,9 @@ ensuring operational blinding and minimizing manual bias in the analysis pipelin
 from pathlib import Path
 import sys
 
-# Project-root aware paths (works on Windows and other OSes)
+
 repo_root = Path(__file__).resolve().parent.parent
-# Make sure src/ is importable when running scripts directly
+
 sys.path.insert(0, str(repo_root))
 from src.DNA_Damage import DNA_Data, Long_welfare_measures, Data_pre_analysis, Long_welfare_analysis
 
@@ -31,7 +31,6 @@ dna_data.process_DNA_data()
 wf_measures = Long_welfare_measures(dna_data)
 wf_measures.process_Long_welfare_measures()
 
-# Ensure output directory exists and save results there
 output_dir = repo_root / "Output" / "Results_DNA_damage"
 output_dir.mkdir(parents=True, exist_ok=True)
 wf_measures.df.to_excel(output_dir / 'DNA_Damage_Data_Full.xlsx', index=False)

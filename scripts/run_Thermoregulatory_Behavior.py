@@ -25,13 +25,12 @@ fills = {'RTR': '#CFFFFF', 'WTR': '#FFDAB8'}
 processor.colors = colors
 processor.fills = fills
  
-# Mostrar resultados
+
 print("\n---------------------------------Datos entrada (origen)-----------------------------------------")
 print("\n")
 processor.process_data()
 
 ######################################################################################################################
-# Ensure output directory exists
 output_dir = repo_root / 'Output' / 'Results_Thermoregulatory_Behavior'
 output_dir.mkdir(parents=True, exist_ok=True)
 

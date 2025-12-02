@@ -23,7 +23,6 @@ ox_stress_data.colors = colors
 ox_stress_data.fills = fills
 ox_stress_data.process_Oxidative_stress_Data()
 
-# Ensure output directory exists and save outputs there
 output_dir = repo_root / 'Output' / 'Results_Oxidative_Stress'
 output_dir.mkdir(parents=True, exist_ok=True)
 ox_stress_data.Intensity_df.to_excel(output_dir / 'intensitydata.xlsx', index=False)
@@ -31,7 +30,7 @@ ox_stress_data.Ox_Stress_df.to_excel(output_dir / 'X_DMPO_Gene_relative_expressi
 
 ########################################################################################################################
 pre_analysis = Data_pre_analysis(ox_stress_data)
-pre_analysis.output_dir = output_dir  # Pass output directory
+pre_analysis.output_dir = output_dir
 pre_analysis.data_description()
 
 print("\nOutliers detection")
@@ -51,5 +50,5 @@ pre_analysis.variable_relationship_analysis(relationship_numeric_variables, rela
 
 ###########################################################################################################################
 ox_stress_analysis= Oxidative_Stress_analysis(ox_stress_data, pre_analysis)
-ox_stress_analysis.output_dir = output_dir  # Pass output directory
+ox_stress_analysis.output_dir = output_dir
 ox_stress_analysis.process_Oxidative_Stress_analysis()

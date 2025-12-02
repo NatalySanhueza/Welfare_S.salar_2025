@@ -65,15 +65,9 @@ class data_processing:
     def outliers_duplicate_null_detection(self, variables, categorical_variables, z_score=3):
         df = self.df.copy()
         analysis_list = []
-    
-        # Agrupar por las variables categóricas seleccionadas
         for group, group_df in df.groupby(categorical_variables):
-            
-            # Convertir group a tupla si es una sola categoría
             if not isinstance(group, tuple):
                 group = (group,)
-            
-            # Iterar sobre las variables independientes
             for var in variables:
                 num_outliers = None
                 outliers_values = None
@@ -90,22 +84,18 @@ class data_processing:
     
                 num_nulls = group_df[var].isnull().sum()
                 null_values = group_df.loc[group_df[var].isnull(), var].tolist()
-    
-                # Crear un diccionario para almacenar el resultado
+
                 result = {'Variable': var, 'Num_Outliers': num_outliers, 'Outliers_Values': outliers_values,
                           'Num_Duplicates': num_duplicates, 'Duplicate_Values': duplicate_values,
                           'Num_Nulls': num_nulls, 'Null_Values': null_values}
-    
-                # Añadir las variables categóricas al diccionario
+
                 for i, cat_var in enumerate(categorical_variables):
                     result[cat_var] = group[i]
     
                 analysis_list.append(result)
-    
-        # Crear el DataFrame resumen de análisis
+
         analysis_summary = pd.DataFrame(analysis_list)
-    
-        # Reordenar las columnas en el orden deseado
+
         column_order = categorical_variables + ['Variable', 'Num_Outliers', 'Outliers_Values', 
                                                 'Num_Duplicates', 'Duplicate_Values', 
                                                 'Num_Nulls', 'Null_Values']
@@ -121,17 +111,14 @@ class data_processing:
     def data_clean(self, variables, categorical_variables, handle_outliers=True, outlier_method='remove', 
                    z_score=3, remove_na=True, remove_duplicates=True):
         self.df_clean = self.df.copy()
-    
-        # Agrupar por las variables categóricas seleccionadas
+
         for group, group_df in self.df_clean.groupby(categorical_variables):
-            
-            # Convertir group a tupla si es una sola categoría
+
             if not isinstance(group, tuple):
                 group = (group,)
             
             group_mask = np.all([self.df_clean[cat_var] == val for cat_var, val in zip(categorical_variables, group)], axis=0)
-            
-            # Si se solicita manejar los outliers
+
             if handle_outliers and variables is not None:
                 df_outliers = group_df.copy()
                 
@@ -155,22 +142,19 @@ class data_processing:
                         print(f"Skipping outlier detection for non-numeric variable: {num_var} in group {group}")
             else:
                 print(f"Outlier handling was skipped for group {group}.")
-        
-            # Eliminar valores NaN
+
             if remove_na:
                 group_df = group_df.dropna()
                 print(f"Missing values (NaN) were removed for group {group}.")
             else:
                 print(f"Skipping removal of missing values for group {group}.")
-        
-            # Eliminar duplicados
+
             if remove_duplicates:
                 group_df = group_df.drop_duplicates()
                 print(f"Duplicate rows were removed for group {group}.")
             else:
                 print(f"Skipping removal of duplicate rows for group {group}.")
-            
-            # Actualizar la DataFrame limpia con los cambios del grupo actual
+
             self.df_clean.loc[group_mask] = group_df
     
         return self.df_clean
@@ -200,20 +184,17 @@ class data_processing:
         """
         data = self.df_clean if self.df_clean is not None else self.df
         sns.set_theme(style=theme)
-         
-        # Si no hay variables categóricas especificadas, se utiliza todo el DataFrame
+
         if categorical_variables:
             group_data = data.groupby(categorical_variables)
         else:
-            group_data = [(None, data)]  # Un solo grupo con todo el DataFrame
+            group_data = [(None, data)]
     
         for group, group_df in group_data:
-            # Crear una figura con subplots para cada grupo
             sns.reset_defaults()
             plt.rcdefaults()
             fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(fig_size[0], fig_size[1]))
-            
-            # Aplanar los ejes en caso de que sea una matriz para evitar errores
+
             axes = axes.flatten() if isinstance(axes, np.ndarray) else [axes]
     
             for i, y in enumerate(y_list):
@@ -222,33 +203,24 @@ class data_processing:
                     sns.scatterplot(data=group_df, x=x, y=y, hue=hue, palette=colors, ax=ax)
                 else:
                     sns.scatterplot(data=group_df, x=x, y=y, hue=hue, ax=ax)
-    
-                # Etiquetas de los ejes
+
                 ax.set_xlabel(name_axis_x if name_axis_x else x, fontsize=font_size, fontname=font)
                 ax.set_ylabel(f"{y} {y_um_var if y_um_var else ''}", fontsize=font_size, fontname=font)
-    
-                # Ajustar la escala de los ejes
                 ax.set_xscale(scale_x)
                 ax.set_yscale(scale_y)
-    
-                # Asegurar que los ticks de ambos ejes sean visibles y ajustados
                 ax.tick_params(axis='both', which='both', labelsize=font_size, colors='black')
                 ax.set_axisbelow(True)
-    
-                # Crear el string del título para las variables categóricas
+
                 if categorical_variables:
-                    # Si hay más de una variable categórica, unir con '-'. Si es una sola, usar directamente su valor.
                     group_str = '-'.join(map(str, group)) if isinstance(group, tuple) else str(group)
                 else:
                     group_str = ""
-    
-                # Asignar el título del subplot
                 ax.set_title(f"{title} - {y} - {group_str}", fontsize=font_size + 2, fontname=font)
 
             plt.legend(prop={'size': 6, 'family': font})
             plt.tight_layout()
             self.plots.append(fig)
-            # Save scatter plot figure
+
             try:
                 output_dir = Path("Output") / "Results_Cumulative_welfare"
                 output_dir.mkdir(parents=True, exist_ok=True)
@@ -264,14 +236,11 @@ class data_processing:
     def norm_homo_analysis(self, dependent_variables, categorical_variables, independent_continuous_variable, norm_test='Shapiro'):
         data = self.df_clean if self.df_clean is not None else self.df
         results_tests = []
-    
-        # Asegurar que categorical_variables sea una lista
+
         if not isinstance(categorical_variables, list):
             categorical_variables = [categorical_variables]
-    
-        # Iterar sobre las combinaciones de variables categóricas
+
         for group, group_df in data.groupby(categorical_variables):
-            # Convertir group a tupla si es una sola categoría
             if not isinstance(group, tuple):
                 group = (group,)
             
@@ -304,7 +273,6 @@ class data_processing:
                 ax3.set_ylabel('Residuals')
                 
                 plt.tight_layout()
-                # Save norm/homo analysis figure
                 try:
                     output_dir = Path("Output") / "Results_Cumulative_welfare"
                     output_dir.mkdir(parents=True, exist_ok=True)
@@ -338,40 +306,32 @@ class data_processing:
                     'p_val_homocedasticity': p_val_homo,
                     'Is_homogeneous': is_homogeneous
                 })
-    
-        # Crear tabla de resultados
+
         df_results = pd.DataFrame(results_tests)
         print(f"\n{norm_test} test & Levene test summary")
         print(df_results)
         self.df_results_tests = df_results
         
     def variable_relationship_analysis(self, relationship_numeric_variables, relationship_categorical_variable, categorical_variables=None):
-        # Si no se pasan variables categóricas, usa un único DataFrame sin agrupamiento
         if categorical_variables is None:
             categorical_variables = []
-        
-        # Generar combinaciones de niveles de las variables categóricas
+
         if categorical_variables:
-            # Obtener los valores únicos de todas las variables categóricas
             unique_combinations = pd.DataFrame(
                 [dict(zip(categorical_variables, combination)) for combination in 
                  pd.MultiIndex.from_product([self.df[var].unique() for var in categorical_variables])]
             )
         else:
-            # Si no hay variables categóricas, se genera una única combinación sin agrupamiento
-            unique_combinations = pd.DataFrame([{}])  # DataFrame vacío para manejar un solo caso
+            unique_combinations = pd.DataFrame([{}])
             
         for _, combination in unique_combinations.iterrows():
-            # Filtrar el DataFrame por la combinación actual de niveles categóricos
             filtered_df = self.df.copy()
             for cat_var, level in combination.items():
                 filtered_df = filtered_df[filtered_df[cat_var] == level]
-            
-            # Verificar que el DataFrame filtrado no esté vacío
+
             if filtered_df.empty:
                 continue
-            
-            # Verificar que todas las categorías en el subset están en el diccionario de colores
+
             unique_categories = filtered_df[relationship_categorical_variable].unique()
             missing_colors = [category for category in unique_categories if category not in colors]
             
@@ -383,11 +343,10 @@ class data_processing:
             corr_matrix = filtered_df[numeric_vars].corr(numeric_only=True)
             plt.figure(figsize=(10, 8))
             sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', vmin=-1, vmax=1, center=0)
-            
-            # Generar el título usando las combinaciones de niveles categóricos
+
             title_suffix = ", ".join([f"{var}: {combination[var]}" for var in combination.index])
             plt.title(f'Correlation Matrix {title_suffix}')
-            # Save correlation matrix
+
             try:
                 output_dir = Path("Output") / "Results_Cumulative_welfare"
                 output_dir.mkdir(parents=True, exist_ok=True)
@@ -403,7 +362,7 @@ class data_processing:
             try:
                 pairplot = sns.pairplot(filtered_df, vars=numeric_vars, hue=relationship_categorical_variable, palette=colors)
                 pairplot.fig.suptitle(f'Pairplot {title_suffix}', y=1.02)
-                # Save pairplot
+
                 output_dir = Path("Output") / "Results_Cumulative_welfare"
                 output_dir.mkdir(parents=True, exist_ok=True)
                 safe_suffix = title_suffix.replace(' ', '_').replace(':', '').replace(',', '')
@@ -420,34 +379,23 @@ class data_processing:
         results_ancova = {}
         
         for var in numeric_variables:
-            # Crear la fórmula del modelo ANCOVA con las variables categóricas e independientes continuas
-            # Incluir interacciones entre las variables categóricas y la variable continua
             formula = f'{var} ~ {independent_continuous_variable} * ' + ' * '.join([f'C({cat})' for cat in categorical_variables])
-            
-            # Ajustar el modelo ANCOVA
             model = ols(formula, data=data).fit()
             anova_table = anova_lm(model)
-            
-            # Agregar una columna con el nombre de la fuente para identificar los resultados
             anova_table['Source'] = anova_table.index
-            
-            # Guardar cada resultado en un DataFrame, con el nombre de la variable como clave
             results_ancova[var] = anova_table[['Source', 'df', 'sum_sq', 'mean_sq', 'F', 'PR(>F)']]
-        
-        # Guardar los DataFrames en un atributo de la clase para acceso posterior
         self.results_ancova_dict = results_ancova
-        
-        # Mostrar los DataFrames por cada variable
+
         for var, df in self.results_ancova_dict.items():
             print(f"\nANCOVA for {var}")
             print(df)
 
 class cumulative_welfare:
     def __init__(self, pre_analysis, data, colors, fills, var_import):
-        self.pre_analysis = pre_analysis  # Preanálisis de datos
-        self.data = data.copy()           # Dataset (copiamos para no alterar el original)
-        self.colors = colors              # Colores para visualización
-        self.fills = fills                # Rellenos para visualización
+        self.pre_analysis = pre_analysis  
+        self.data = data.copy()
+        self.colors = colors
+        self.fills = fills
         self.tissue_colors = tissue_colors
         self.cld_results = None
         self.var_import = var_import
@@ -463,12 +411,10 @@ class cumulative_welfare:
         - **kwargs: Argumentos adicionales para la función de análisis.
         """
         if group and by_variable is not None:
-            # Agrupar los datos y aplicar el análisis a cada grupo
             grouped_data = self.data.groupby(by_variable)
             results = {group_name: analysis_func(group_data, **kwargs) 
                        for group_name, group_data in grouped_data}
         else:
-            # Aplicar el análisis al conjunto de datos completo
             results = {'all_data': analysis_func(self.data, **kwargs)}
         
         return results
@@ -492,7 +438,7 @@ class cumulative_welfare:
         independen_vars = kwargs.get('independen_vars', None)
         n_components = kwargs.get('n_components', 2)
 
-        X = data[dependent_vars].dropna()  # Filtrar datos con las variables independientes
+        X = data[dependent_vars].dropna()
         if X.empty:
             print("No hay suficientes datos para realizar PCA.")
             return None
@@ -502,13 +448,11 @@ class cumulative_welfare:
         X_scaled = scaler.fit_transform(X)
         pca = PCA(n_components=n_components)
         principal_components = -pca.fit_transform(X_scaled) if rotate else pca.fit_transform(X_scaled)
-        explained_variance = pca.explained_variance_ratio_  # Capturamos la varianza explicada
+        explained_variance = pca.explained_variance_ratio_ 
         loadings = -pca.components_.T * np.sqrt(pca.explained_variance_) if rotate else pca.components_.T * np.sqrt(pca.explained_variance_)
         pca_df = pd.DataFrame(data=principal_components, 
                               columns=[f'PC{i+1}' for i in range(n_components)])
-        
-        
-        # Construir el DataFrame de loadings
+
         loadings_df = pd.DataFrame(loadings, columns=[f'PC{i+1}' for i in range(n_components)], index=X.columns)
         loadings_df = loadings_df.reset_index().melt(id_vars='index', var_name='componente', value_name='loading')
         loadings_df = loadings_df.rename(columns={'index': 'nombre_variable'})
@@ -528,7 +472,7 @@ class cumulative_welfare:
         for i, (group_name, result) in enumerate(pca_results.items()):
             ax = axes[i]
             
-            if result[0] is None:  # Check if PCA was performed successfully
+            if result[0] is None:
                 ax.text(0.5, 0.5, f"Not enough data for PCA in group {group_name}", 
                         ha='center', va='center')
                 continue
@@ -546,7 +490,6 @@ class cumulative_welfare:
         return fig
 
     def plot_pca_biplot(self, pca_results, treatment_column, dependent_vars):
-        # Definir el diccionario de nombres de variables
         variable_name = {
             'OHdG': '8-OHdG',
             'mC': '5-mC',
@@ -557,8 +500,6 @@ class cumulative_welfare:
         }
         
         fig, axes = plt.subplots(nrows=1, ncols=len(pca_results), figsize=(3.5, 3.5), squeeze=False)
-                                 #figsize=(2.5*len(pca_results), 2.5), squeeze=False)
-    
         plt.rcParams['font.family'] = 'Arial'
         plt.rcParams['font.size'] = 8
         plt.rcParams['font.weight'] = 'bold'
@@ -573,13 +514,10 @@ class cumulative_welfare:
                 continue
     
             pca_df, explained_variance, pca, loadings = result
-            
-            # Get the original data for this group
             if group_name == 'all_data':
                 group_data = self.data
             else:
                 group_data = self.data[self.data[self.group_column] == group_name]
-            # Reset index for both DataFrames to ensure alignment
             pca_df = pca_df.reset_index(drop=True)
             group_data = group_data.reset_index(drop=True)
     
@@ -594,18 +532,15 @@ class cumulative_welfare:
                 ax.scatter(scores['PC1'].mean(), scores['PC2'].mean(), 
                            label=treatment, alpha=1, color=self.colors[treatment], s=50)
     
-            # Plot loadings con los nombres actualizados
+            # Plot loadings
             for j, var in enumerate(dependent_vars):
                 ax.arrow(0, 0, loadings[j, 0], loadings[j, 1], color='r', alpha=0.5)
-                # Usar el diccionario para obtener el nombre correcto, si existe
-                display_name = variable_name.get(var, var)  # Si no existe en el diccionario, usa el nombre original
+                display_name = variable_name.get(var, var)
                 ax.text(loadings[j, 0]*1.15, loadings[j, 1]*1.15, display_name, 
                         color='r', ha='center', va='center')
-    
-            # Add labels and title
+
             ax.set_xlabel(f'PC1 ({explained_variance[0]:.2%})', fontweight='bold')
             ax.set_ylabel(f'PC2 ({explained_variance[1]:.2%})', fontweight='bold')
-            #ax.set_title(f'PCA Biplot - {group_name}')
             ax.axhline(y=0, color='black', linestyle='dotted', linewidth=2)
             ax.axvline(x=0, color='black', linestyle='dotted', linewidth=2)
             ax.set_ylim(-4, 4)
@@ -614,10 +549,8 @@ class cumulative_welfare:
             ax.yaxis.set_tick_params(width=2, length=5) 
             for spine in ax.spines.values():
                 spine.set_linewidth(2)
-            # Add a grid for better readability
             ax.grid(True, linestyle='--', alpha=0.6)
-    
-            # Make sure the aspect ratio is equal
+
             ax.set_aspect('equal')
 
         return fig
@@ -629,24 +562,18 @@ class cumulative_welfare:
                 continue
 
             pca_df, explained_variance, pca, loadings = result
-            
-            # Get the original data for this group
+
             if group_name == 'all_data':
                 group_data = self.data
             else:
                 group_data = self.data[self.data[self.group_column] == group_name]
 
-            # Reset index for both DataFrames to ensure alignment
             pca_df = pca_df.reset_index(drop=True)
             group_data = group_data.reset_index(drop=True)
 
-            # Calculate PCA index
             pca_index = pca_df['PC1'] * np.sqrt(explained_variance[0]) + pca_df['PC2'] * np.sqrt(explained_variance[1])
-            
-            # Add PCA index to group_data
+
             group_data[index_name] = pca_index
-            
-            #print(group_data.head())
 
             shapiro_stat, p_val_norm = stats.shapiro(group_data['PCA Index'])
             print(f'{group_name} Shapiro test: {shapiro_stat} | p-value: {p_val_norm}')
@@ -659,8 +586,7 @@ class cumulative_welfare:
                 'treatment_column': treatment_column,
                 'continuous_category': continuous_category
             }
-
-        
+     
         return index_data
         
     def statistical_analysis_pca_index(self, index_data, post_hoc_method='conover', post_hoc_correction='holm', output_dir=None):
@@ -670,11 +596,9 @@ class cumulative_welfare:
         Parámetros:
         - index_data (dict): Diccionario que contiene la información procesada de cada grupo (resultado de `calculate_pca_index`)
         """
-        
-        # Importar la clase StatisticalAnalysis desde el archivo .py
+
         from src.kruskal_wallis import StatisticalAnalysis
-        
-        # Preparar los datos y variables. 
+
         """ group_name clave del diccionario que agrupa los datos y variables por una de las variables categoricas (Tissue: brain, muscle)
             data son los valores del diccionario    
         """
@@ -682,14 +606,13 @@ class cumulative_welfare:
         posthoc_results_all = {}
         cld_results_all = {}
 
-        for group_name, data in index_data.items(): #itera por cada Tissue para filtrar (agrupar los datos por Tissue)
-            group_data = data['group_data']      #se obtienen todos los datos desde index_data (datos completos de entrada)
-            index_name = data['index_name']      #Contiene la variable dependiente de interes filtrada desde index_data
-            treatment_column = data['treatment_column']    #Contiene la variable treatment_column (RTR WTR) filtrada desde index_data
-            continuous_category = data['continuous_category']   #Contiene la variable continuous_category (tiempos) filtrada desde index_data
+        for group_name, data in index_data.items():
+            group_data = data['group_data']
+            index_name = data['index_name']
+            treatment_column = data['treatment_column']
+            continuous_category = data['continuous_category']
 
             print(f"\nResultados del análisis de Kruskal-Wallis para el grupo: {group_name}")
-            # Crear instancia de la clase y realizar análisis de Kruskal-Wallis
             kw_ph = StatisticalAnalysis(group_data)
             kw_results, post_hoc_results, cld_results = kw_ph.run_full_analysis(
                 dependent_vars = [index_name], 
@@ -698,18 +621,15 @@ class cumulative_welfare:
                 post_hoc_correction=post_hoc_correction                
             )
 
-            # Store results in dicts keyed by sanitized group name
             safe_name = str(group_name).replace(' ', '_')
             kw_results_all[safe_name] = kw_results
             posthoc_results_all[safe_name] = post_hoc_results
             cld_results_all[safe_name] = cld_results
 
-            # Concatenate CLD into self.cld_results later; but save files now if output_dir provided
             if output_dir is not None:
                 outp = Path(output_dir)
                 outp.mkdir(parents=True, exist_ok=True)
                 try:
-                    # Save Kruskal-Wallis results
                     kw_results.to_excel(outp / f'kruskal_wallis_{safe_name}.xlsx', index=False)
                     print(f"Saved Kruskal-Wallis results to {outp / f'kruskal_wallis_{safe_name}.xlsx'}")
                 except Exception as e:
@@ -739,7 +659,6 @@ class cumulative_welfare:
                     except Exception as e2:
                         print(f"Warning: could not save CLD results for {group_name}: {e2}")
 
-        # After loop, concatenate CLD results for plotting convenience
         try:
             if len(cld_results_all) > 0:
                 self.cld_results = pd.concat(list(cld_results_all.values()), ignore_index=True)
@@ -754,7 +673,6 @@ class cumulative_welfare:
     
     def plot_pca_index(self, index_data):
         fig, axes = plt.subplots(nrows=1, ncols=len(index_data), figsize=(3.5, 3.5), squeeze=False)
-                                 #figsize=(2.5*len(index_data), 2.5), squeeze=False)
         
         plt.rcParams['font.family'] = 'Arial'
         plt.rcParams['font.size'] = 8
@@ -776,12 +694,10 @@ class cumulative_welfare:
 
             categories = sorted(group_data[continuous_category].unique())
             treatments = sorted(group_data[treatment_column].unique())
-            
-            # Set positions and width for box plots
+
             positions = np.arange(len(categories))*2
             width = 0.8
-            
-            # Create box plots for each treatment
+
             for j, treatment in enumerate(treatments):
                 treatment_data = [group_data[(group_data[continuous_category] == cat) & 
                                              (group_data[treatment_column] == treatment)][index_name] 
@@ -800,25 +716,19 @@ class cumulative_welfare:
                 for k, cat in enumerate(categories):
                     mean_value = group_data[(group_data[continuous_category] == cat) & 
                                             (group_data[treatment_column] == treatment)][index_name].mean()
-                    #ax.plot(positions[k] + (j - 0.5) * width, mean_value, 
-                    #        marker='o', color='black', markersize=2, label='_nolegend_')
 
-                    # Extraer la etiqueta CLD para este grupo y categoría
                     cld_results = self.cld_results
                     cld_label = cld_results[
                         (cld_results[treatment_column] == treatment) & 
                         (cld_results[continuous_category] == str(cat))
                     ]['labels'].values
-                    
-                    # Agregar la etiqueta al gráfico si existe
+
                     max_value = group_data[(group_data[continuous_category] == cat) & 
                                             (group_data[treatment_column] == treatment)][index_name].max()
                     if len(cld_label) > 0:
                         ax.text(positions[k] + (j - 0.5) * width, max_value + 0.2, 
                                 cld_label[0], ha='center', va='bottom', fontsize=8, fontweight='bold', color='black')
 
-            # Customize the plot
-            #ax.set_title(f'{index_name} by {continuous_category} - {group_name}')
             ax.set_xlabel('Time (days)', fontsize=8, fontweight='bold')
             ax.set_ylabel(f'Cumulative welfare index', fontsize=8, fontweight='bold')
             ax.set_xticks(positions)
@@ -829,24 +739,17 @@ class cumulative_welfare:
             ax.yaxis.set_tick_params(width=2, length=5) 
             for spine in ax.spines.values():
                 spine.set_linewidth(2)
-            #ax.grid(True, linestyle='--', alpha=0.6)
-            #ax.set_aspect('equal')
+
         plt.tight_layout()
         return fig 
 
-   
-
-
     def plot_combined_figures(self, pca_results, treatment_column, dependent_vars, index_data):
-        # Crear una figura con 1 fila y 2 columnas
         fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(7, 3.5))
         
         plt.rcParams['font.family'] = 'Arial'
-        plt.rcParams['font.size'] = 10  # Cambiado a 10
+        plt.rcParams['font.size'] = 10
         plt.rcParams['font.weight'] = 'bold'
 
-        # Código para el primer subplot (PCA biplot)
-        # Definir el diccionario de nombres de variables
         variable_name = {
             'OHdG': '8-OHdG %',
             'mC': '5-mC %',
@@ -855,8 +758,7 @@ class cumulative_welfare:
             'Survival_Probability': 'Survival',
             'Body_Mass': 'Body mass (g)'
         }
-        
-        # Tomar solo el primer resultado del PCA
+
         group_name, result = list(pca_results.items())[0]
         
         if result[0] is not None and not result[0].empty:
@@ -884,7 +786,7 @@ class cumulative_welfare:
                 ax1.arrow(0, 0, loadings[j, 0], loadings[j, 1], color='r', alpha=0.5)
                 display_name = variable_name.get(var, var)
                 ax1.text(loadings[j, 0]*1.15, loadings[j, 1]*1.15, display_name, 
-                      color='r', ha='center', va='center', fontsize=8)  # Añadido fontsize=10
+                      color='r', ha='center', va='center', fontsize=8)
 
             ax1.set_xlabel(f'PC1 ({explained_variance[0]:.2%})', fontweight='bold', fontsize=10)
             ax1.set_ylabel(f'PC2 ({explained_variance[1]:.2%})', fontweight='bold', fontsize=10)
@@ -894,9 +796,8 @@ class cumulative_welfare:
             ax1.set_xlim(-4, 4)
             ax1.grid(True, linestyle='--', alpha=0.6)
             ax1.set_aspect('equal')
-            ax1.tick_params(axis='both', labelsize=10)  # Añadido para los ticks
+            ax1.tick_params(axis='both', labelsize=10)
 
-        # Código para el segundo subplot (Index plot)
         group_name, data = list(index_data.items())[0]
         
         if data is not None:
@@ -938,17 +839,15 @@ class cumulative_welfare:
                     
                     if len(cld_label) > 0:
                         ax2.text(positions[k] + (j - 0.5) * width, max_value + 0.2, 
-                             cld_label[0], ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')  # Cambiado a 10
-
+                             cld_label[0], ha='center', va='bottom', fontsize=10, fontweight='bold', color='black')
             ax2.set_xlabel('Time (days)', fontsize=10, fontweight='bold')
             ax2.set_ylabel('Cumulative welfare index', fontsize=10, fontweight='bold')
             ax2.set_xticks(positions)
             ax2.set_xticklabels(categories, fontsize=10, fontweight='bold')
             ax2.set_ylim(-3.5, 3.5)
             ax2.set_xlim(min(positions) - 1, max(positions) + 1)
-            ax2.tick_params(axis='both', labelsize=10)  # Añadido para los ticks
+            ax2.tick_params(axis='both', labelsize=10)
 
-        # Configuración común para ambos subplots
         for ax in [ax1, ax2]:
             ax.xaxis.set_tick_params(width=2, length=5)
             ax.yaxis.set_tick_params(width=2, length=5)
@@ -1029,11 +928,9 @@ class cumulative_welfare:
                          test_size=0.2, n_estimators=100, random_state=42, cv=5, use_scaled_data=False, n_bootstrap=1000,
                          output_dir=None, show_plots=True, **kwargs):
         
-        # Propagate plotting flag so that pre-analysis shows figures too
-        self.group_column = by_variable  # Store the grouping column for later use
+        self.group_column = by_variable
         self.show_plots = bool(show_plots)
         try:
-            # also ensure pre_analysis uses same flag
             self.pre_analysis.show_plots = bool(show_plots)
         except Exception:
             pass
@@ -1042,41 +939,35 @@ class cumulative_welfare:
                                             by_variable=by_variable,
                                             rotate=rotate,
                                             **kwargs)
-        
-        # Create the explained variance plot
+
         variance_fig = self.plot_explained_variance(pca_results)
-        
-        # Create the biplot
+
         dependent_vars = kwargs.get('dependent_vars', [])
         biplot_fig = self.plot_pca_biplot(pca_results, treatment_column, dependent_vars)
-        
-        # Calculate PCA index
+
         index_data = self.calculate_pca_index(pca_results, treatment_column, continuous_category)
-        # Calculate Statistical test (Kruskal-Wallis + post-hoc + CLD)
         kw_results_all, posthoc_results_all, cld_results = self.statistical_analysis_pca_index(
             index_data, 
             post_hoc_method=post_hoc_method,
             post_hoc_correction=post_hoc_correction,
             output_dir=output_dir
         )
-        # Create the PCA index plot
+
         index_fig = self.plot_pca_index(index_data)
 
         fig1 = self.plot_combined_figures(pca_results, treatment_column, dependent_vars, index_data)
 
         pca_contribution = self.calculate_variable_contributions(pca_results, dependent_vars, n_components=2)
-        # Ensure output directory exists and save results
+
         if output_dir is not None:
             output_dir = Path(output_dir)
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Save PCA contributions
             try:
                 pca_contribution.to_excel(output_dir / 'PCA_contributions.xlsx', index=False)
             except Exception:
                 pass
 
-            # Collect figures: include pre-analysis plots if present
             figs = []
             try:
                 figs.extend(self.pre_analysis.plots)

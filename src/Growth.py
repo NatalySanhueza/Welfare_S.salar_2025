@@ -180,11 +180,9 @@ class data_processing:
         """
         data = self.df_clean if self.df_clean is not None else self.df
         sns.set_theme(style=theme)
-    
-        # Crear una figura con subplots
+
         fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(fig_size[0], fig_size[1]))
-        
-        # Aplanar los ejes en caso de que sea una matriz para evitar errores
+
         axes = axes.flatten() if isinstance(axes, np.ndarray) else [axes]
     
         for i, y in enumerate(y_list):
@@ -193,25 +191,19 @@ class data_processing:
                 sns.scatterplot(data=data, x=x, y=y, hue=hue, palette=colors, ax=ax)
             else:
                 sns.scatterplot(data=data, x=x, y=y, hue=hue, ax=ax)
-    
-            # Etiquetas de los ejes
+
             ax.set_xlabel(name_axis_x if name_axis_x else x, fontsize=font_size, fontname=font)
             ax.set_ylabel(f"{y} {y_um_var if y_um_var else ''}", fontsize=font_size, fontname=font)
-    
-            # Ajustar la escala de los ejes
+
             ax.set_xscale(scale_x)
             ax.set_yscale(scale_y)
-    
-            # Asegurar que los ticks de ambos ejes sean visibles y ajustados
-            
+
             ax.tick_params(axis='both', which='both', labelsize=font_size, colors='black')
             ax.set_axisbelow(True)
-            # Título del subplot
             ax.set_title(f"{title} - {y}", fontsize=font_size + 2, fontname=font)
     
         plt.tight_layout()
         self.plots.append(fig)
-        # Save scatter plot
         try:
             output_dir = Path("Output") / "Results_Growth"
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -248,11 +240,9 @@ class data_processing:
             ax3.set_title(f'Residual Plot of {var}')
             ax3.set_xlabel('Fitted Values')
             ax3.set_ylabel('Residuals')
-            
-            # Ajustar diseño
+
             plt.tight_layout()
-            
-            # Guardar gráfico
+
             try:
                 output_dir = Path("Output") / "Results_Growth"
                 output_dir.mkdir(parents=True, exist_ok=True)
@@ -279,7 +269,6 @@ class data_processing:
                 'Is_homogeneous': is_homogeneous
             })
 
-        # Crear tabla de resultados
         df_results = pd.DataFrame(results_tests)
         print("\nD’Agostino and Pearson test & Levene test summary")
         print(df_results)
@@ -295,7 +284,7 @@ class data_processing:
         plt.figure(figsize=(10, 8))
         sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', vmin=-1, vmax=1, center=0)
         plt.title('Correlation Matrix')
-        # Save correlation matrix
+
         try:
             output_dir = Path("Output") / "Results_Growth"
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -324,26 +313,19 @@ class data_processing:
         results_ancova = {}
         
         for var in numeric_variables:
-            # Ajustar el modelo ANCOVA con la variable independiente pasada como parámetro
             model = ols(f'{var} ~ C({categorical_variable}) + {independent_variable}', data=data).fit()
             anova_table = anova_lm(model)
-            
-            # Agregar una columna con el nombre de la fuente para identificar los resultados
+
             anova_table['Source'] = anova_table.index
-            
-            # Guardar cada resultado en un DataFrame, con el nombre de la variable como clave
+
             results_ancova[var] = anova_table[['Source', 'df', 'sum_sq', 'mean_sq', 'F', 'PR(>F)']]
-        
-        # Guardar los DataFrames en un atributo de la clase para acceso posterior
+
         self.results_ancova_dict = results_ancova
-        
-        # Mostrar los DataFrames por cada variable
+
         for var, df in self.results_ancova_dict.items():
             print(f"\nANCOVA for {var}")
             print(df)
-        
-        # También puedes devolver el diccionario si lo prefieres
-        #return self.results_ancova_dict
+
     
 class NLM_Analysis:
     def __init__(self, pre_analysis):
@@ -491,27 +473,22 @@ class NLM_Analysis:
         Optimiza la conjetura inicial usando un método de optimización global (differential_evolution).
         """
         result = differential_evolution(lambda p: np.sum((model_func(x, *p) - y) ** 2), bounds, maxiter=1000)
-        return result.x  # Devuelve los parámetros optimizados
+        return result.x
 
     def fit_model(self, model_name, x, y, fitting_method='curve_fit', use_optimization=False):
         """
         Ajusta el modelo seleccionado a los datos usando el método de ajuste especificado.
         """
-        # Obtener la función del modelo y la conjetura inicial
         model_func, initial_guess_func = self.models[model_name]
         initial_guess = initial_guess_func(x, y)
-        
-        # Si se activa la optimización de conjetura inicial
+
         if use_optimization:
-            # Definir rangos de búsqueda de parámetros según el modelo
-            bounds = [(0, 10)] * len(initial_guess)  # Ajustar los límites según el modelo
+            bounds = [(0, 10)] * len(initial_guess)
             initial_guess = self.optimize_initial_guess(model_func, x, y, bounds)
-        
-        # Ajuste del modelo usando el método seleccionado
+
         fit_func = self.fitting_methods[fitting_method]
         params = fit_func(model_func, x, y, initial_guess)
-        
-        # Si falla el ajuste, intentar con un método alternativo
+
         if params is None:
             print(f"Warning: Could not fit {model_name} model using {fitting_method}. Trying alternative method.")
             alternative_method = 'differential_evolution' if fitting_method == 'curve_fit' else 'curve_fit'
@@ -613,17 +590,14 @@ class NLM_Analysis:
                     ax.plot(x_smooth, y_smooth, color=self.colors[treatment], label=f'{treatment} (Fitted)')
                 
             ax.set_title(f'{model_name} Model', fontsize=8, fontweight='bold')
-            #ax.set_xlim(-5, 165)
             ax.set_xlabel(name_xaxis, fontsize=8, fontweight='bold')
             ax.set_ylabel(name_yaxis, fontsize=8, fontweight='bold')
-            #ax.legend(fontsize=8)
-            #ax.get_legend().remove()
             for label in ax.get_xticklabels() + ax.get_yticklabels():
                 label.set_fontsize(8)
                 label.set_fontweight('bold')
         
         plt.tight_layout()
-        # Save fitted models figure
+
         try:
             output_dir = Path("Output") / "Results_Growth"
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -636,8 +610,7 @@ class NLM_Analysis:
         
     def compare_models(self):
         comparison_data = []
-        
-        # Recolectar los datos de las métricas para cada modelo
+
         for treatment in self.model_metrics:
             for model in self.model_metrics[treatment]:
                 metrics = self.model_metrics[treatment][model]
@@ -646,8 +619,7 @@ class NLM_Analysis:
                     'Model': model,
                     **metrics
                 })
-        
-        # Crear un DataFrame con los datos recolectados
+
         comparison_df = pd.DataFrame(comparison_data)
         try:
             output_dir = Path("Output") / "Results_Growth"
@@ -659,49 +631,37 @@ class NLM_Analysis:
         
         print("Model Comparison:")
         print(comparison_df)
-        
-        # Crear una lista para almacenar los datos ordenados
+
         ordered_models_data = []
-        
-        # Métricas a comparar
+
         metrics_to_compare = ['R2', 'MSE', 'RMSE', 'MAE', 'RSS', 'RSE', 'AIC', 'BIC', 'Log-likelihood']
-        
-        # Procesar cada tratamiento
+
         for treatment in comparison_df['Treatment'].unique():
             treatment_df = comparison_df[comparison_df['Treatment'] == treatment]
-            
-            # Para cada métrica, ordenar los modelos
+
             for metric in metrics_to_compare:
                 if metric in ['R2', 'Log-likelihood']:
-                    # Para R2 y Log-likelihood, los mejores valores son los mayores
                     ordered_models = treatment_df.sort_values(by=metric, ascending=False)['Model'].tolist()
                 else:
-                    # Para el resto de métricas, los mejores valores son los menores
                     ordered_models = treatment_df.sort_values(by=metric, ascending=True)['Model'].tolist()
-                
-                # Crear un diccionario para almacenar los modelos ordenados
+
                 ordered_dict = {'Treatment': treatment, 'Metric': metric}
-                
-                # Añadir dinámicamente cada modelo como 'n_best_model'
+
                 for i, model in enumerate(ordered_models):
                     ordered_dict[f'{i+1}th Best Model'] = model
                 
                 ordered_models_data.append(ordered_dict)
-        
-        # Crear DataFrame con los modelos ordenados
+
         ordered_models_df = pd.DataFrame(ordered_models_data)
-        
-        # Mostrar la tabla de mejores modelos ordenados
+
         print("\nBest Models Ordered by Metric:")
         print(ordered_models_df)
-        
-        # Contar cuántas veces cada modelo aparece como el mejor (1st Best Model)
+
         model_counts = ordered_models_df['1th Best Model'].value_counts()
         
         print("\nModel Performance Summary (1st Best Model Count):")
         print(model_counts)
-        
-        # Identificar el modelo con mejor desempeño general
+
         best_overall_model = model_counts.index[0]
         print(f"\nBest Overall Model: {best_overall_model}")
         
@@ -762,8 +722,7 @@ class NLM_Analysis:
                             'CI Upper': ci_upper[i],
                             'Degrees of Freedom': dof
                         })
-    
-                    # Calcular la matriz de correlación a partir de la matriz de covarianza
+
                     diag_inv = np.diag(1 / np.sqrt(np.diag(cov_matrix)))
                     corr_matrix = diag_inv.dot(cov_matrix).dot(diag_inv)
     
@@ -796,7 +755,6 @@ class NLM_Analysis:
     
     
     def check_model_assumptions(self, dependent_var, categorical_var, time_var, selected_models):
-        # Tabla para almacenar los resultados de las pruebas
         results = []
 
         for treatment in self.df[categorical_var].unique():
@@ -805,9 +763,8 @@ class NLM_Analysis:
             y = treatment_data[f'{dependent_var}_normalized'].values
             
             for model_name, (model_func, _) in self.models.items():
-                # Verificar si el modelo actual está en la lista de modelos seleccionados
                 if model_name not in selected_models:
-                    continue  # Saltar este modelo si no está seleccionado
+                    continue
                 
                 params = self.fitted_params[treatment][model_name]
                 y_pred = model_func(x, *params)
@@ -815,11 +772,9 @@ class NLM_Analysis:
                 std_residuals = (residuals - np.mean(residuals)) / np.std(residuals)
                 plt.rcdefaults()
                 sns.reset_defaults()
-                # Crear una figura con subplots
                 plt.rcParams['font.family'] = 'Arial'
                 plt.rcParams['font.size'] = 8
                 fig = plt.figure(figsize=(8, 8))
-                #fig.suptitle(f"\n{model_name} - {treatment} - {dependent_var}\n", fontsize=12)
                 
                 # 1. Normalidad de los residuos
                 ax1 = fig.add_subplot(331)
@@ -903,7 +858,7 @@ class NLM_Analysis:
                 ax9.set_title("Cook's Distance")
                 
                 plt.tight_layout()
-                # Save model assumptions figure
+
                 try:
                     output_dir = Path("Output") / "Results_Growth"
                     output_dir.mkdir(parents=True, exist_ok=True)
@@ -915,10 +870,9 @@ class NLM_Analysis:
                 plt.close(fig)
 
                 # Prueba de Breusch-Pagan para homocedasticidad
-                exog = sm.add_constant(y_pred)  # Agregar constante a los valores predichos
+                exog = sm.add_constant(y_pred)
                 bp_test = het_breuschpagan(residuals, exog)
-    
-                # Guardar resultados de Breusch-Pagan
+
                 bp_result = {
                     'Modelo': model_name,
                     'Tratamiento': treatment,
@@ -927,16 +881,13 @@ class NLM_Analysis:
                     'p-valor': bp_test[1],
                     'Resultado': 'Rechaza H0 (No homocedástico)' if bp_test[1] < 0.05 else 'No rechaza H0 (Homocedástico)'
                 }
-                
-                # Agregar resultados a la tabla de resultados
+
                 results.append(bp_result)
 
                 # Prueba de White para homocedasticidad
-                exog = np.column_stack((y_pred, y_pred**2))  # Predicciones y predicciones al cuadrado
-                exog = sm.add_constant(exog)  # Agregar constante
+                exog = np.column_stack((y_pred, y_pred**2))
+                exog = sm.add_constant(exog)
                 white_test = het_white(residuals**2, exog)
-    
-                # Guardar resultados de White Test
                 white_result = {
                     'Modelo': model_name,
                     'Tratamiento': treatment,
@@ -945,8 +896,7 @@ class NLM_Analysis:
                     'p-valor': white_test[1],
                     'Resultado': 'Rechaza H0 (No homocedástico)' if white_test[1] < 0.05 else 'No rechaza H0 (Homocedástico)'
                 }
-                
-                # Agregar resultados a la tabla de resultados
+
                 results.append(white_result)
                 
                 # Prueba de normalidad de D'Agostino-Pearson
@@ -970,8 +920,7 @@ class NLM_Analysis:
                     'p-valor': levene_test.pvalue,
                     'Resultado': 'Rechaza H0 (No homocedástico)' if levene_test.pvalue < 0.05 else 'No rechaza H0 (Homocedástico)'
                 }
-                
-                # Agregar resultados a la tabla
+
                 results.append(normality_result)
                 results.append(homoscedasticity_result)
 
@@ -981,14 +930,10 @@ class NLM_Analysis:
                     'Cook\'s Distance': cook_distance
                 })
                 cook_df_sorted = cook_df.sort_values(by="Cook's Distance", ascending=False).reset_index(drop=True)
-    
-                # Mostrar los puntos influyentes ordenados
-                #cook_df_sorted.to_excel(f'Cook_{model_name}_{treatment}.xlsx')
+
                 print(cook_df_sorted.head(7))
 
-        # Convertir los resultados a un DataFrame
         results_df = pd.DataFrame(results)
-        #print("\nResidual D'Agostino-Pearson and Levene Test:")
         print(results_df)
         return results_df
 
@@ -1001,14 +946,13 @@ class NLM_Analysis:
             
             for model_name in selected_models:
                 model_func, _ = self.models[model_name]
-                
-                # Fit the model to the full dataset
+
                 x_full = treatment_data[time_var].values
                 y_full = treatment_data[f'{dependent_var}_normalized'].values
                 full_params = self.fit_model(model_name, x_full, y_full)
                 
                 if full_params is None:
-                    continue  # Skip this model if it fails to fit
+                    continue
                 
                 param_names = list(inspect.signature(model_func).parameters.keys())[1:len(full_params) + 1]
                 jackknife_params = []
@@ -1024,17 +968,15 @@ class NLM_Analysis:
                         jackknife_params.append(params)
                 
                 if not jackknife_params:
-                    continue  # Skip this model if all jackknife samples fail
+                    continue
                 
                 jackknife_params = np.array(jackknife_params)
-                
-                # Calculate jackknife estimates
+
                 jackknife_mean = np.mean(jackknife_params, axis=0)
                 jackknife_bias = (n - 1) * (jackknife_mean - full_params)
                 jackknife_var = ((n - 1) / n) * np.sum((jackknife_params - jackknife_mean)**2, axis=0)
                 jackknife_se = np.sqrt(jackknife_var)
-                
-                # Calculate confidence intervals (assuming normal distribution)
+
                 ci_lower = full_params - 1.96 * jackknife_se
                 ci_upper = full_params + 1.96 * jackknife_se
                 
@@ -1070,7 +1012,7 @@ class NLM_Analysis:
     ):
         """
         Bootstrap analysis extendido:
-          - ICs de parámetros (como antes).
+          - ICs de parámetros.
           - ICs de curvas predichas por tratamiento.
           - Comparaciones de curvas completas entre tratamientos.
         """
@@ -1078,7 +1020,6 @@ class NLM_Analysis:
         bootstrap_by_group = {}
         curves_by_group = {}
     
-        # --- Definir grilla de tiempo común ---
         x_min = self.df[time_var].min()
         x_max = self.df[time_var].max()
         x_grid = np.sort(self.df[time_var].unique())
@@ -1117,8 +1058,7 @@ class NLM_Analysis:
                 if bootstrap_params:
                     param_names = list(inspect.signature(model_func).parameters.keys())[1:len(params) + 1]
                     bootstrap_array = np.array(bootstrap_params)
-    
-                    # Opcional: filtrar outliers
+
                     if outlier_filter:
                         clean_bootstrap = []
                         clean_curves = []
@@ -1129,16 +1069,13 @@ class NLM_Analysis:
                         bootstrap_array = np.array(clean_bootstrap)
                         bootstrap_curves = np.array(clean_curves)
     
-                    # Guardar parámetros
                     key = (model_name, treatment)
                     bootstrap_by_group[key] = {
                         param_names[i]: bootstrap_array[:, i] for i in range(len(param_names))
                     }
-    
-                    # Guardar curvas
+
                     curves_by_group[key] = np.array(bootstrap_curves)
-    
-                    # Reporte de parámetros
+
                     for i, param_name in enumerate(param_names):
                         values = bootstrap_array[:, i]
                         mean_val = np.mean(values)
@@ -1217,7 +1154,7 @@ class NLM_Analysis:
                 curves1 = curves_by_group[key1]
                 curves2 = curves_by_group[key2]
                 n = min(len(curves1), len(curves2))
-                deltas = curves2[:n] - curves1[:n]  # diferencia punto a punto (invertido para valores positivos)
+                deltas = curves2[:n] - curves1[:n]
                 mean_delta = np.mean(deltas, axis=0)
                 ci_lower = np.percentile(deltas, 2.5, axis=0)
                 ci_upper = np.percentile(deltas, 97.5, axis=0)
@@ -1225,7 +1162,7 @@ class NLM_Analysis:
                 # Área bajo la curva (AUC)
                 auc1 = np.trapz(curves1, x_grid, axis=1)
                 auc2 = np.trapz(curves2, x_grid, axis=1)
-                delta_auc = auc2 - auc1  # Invertido: group2 - group1 para valores positivos
+                delta_auc = auc2 - auc1
                 auc_mean = np.mean(delta_auc)
                 auc_ci = np.percentile(delta_auc, [2.5, 97.5])
                 auc_significant = 'YES' if auc_ci[0] > 0 or auc_ci[1] < 0 else 'NO'
@@ -1239,8 +1176,7 @@ class NLM_Analysis:
                 sig_points = (ci_lower > 0) | (ci_upper < 0)
                 perc_sig = np.mean(sig_points) * 100
                 print(f"  % of timepoints with significant difference: {perc_sig:.1f}%")
-                
-                # Guardar resultados para reporte
+
                 curve_comparison_results.append({
                     'Model': model_name,
                     'Group_1': group1,
@@ -1252,7 +1188,6 @@ class NLM_Analysis:
                     'Perc_Significant_Timepoints': perc_sig
                 })
 
-        # Guardar reporte de comparación de curvas
         if curve_comparison_results:
             curve_comparison_df = pd.DataFrame(curve_comparison_results)
             output_dir = Path("Output") / "Results_Growth"
@@ -1263,8 +1198,7 @@ class NLM_Analysis:
             'Time': x_grid,
             'Significant': sig_points
         })
-        
-        # Exporta el dataframe de significancia por tiempo
+
         output_dir = Path("Output") / "Results_Growth"
         output_dir.mkdir(parents=True, exist_ok=True)
         sig_df.to_excel(output_dir / 'sig_points.xlsx', index=False)
@@ -1397,19 +1331,16 @@ class NLM_Analysis:
             x = treatment_data[time_var].values
             y = treatment_data[dependent_var].values
             y_sd_vals = treatment_data[y_sd].values
-            
-            # Scatter plot con barras de error
+
             ax.scatter(x, y, color=self.colors[treatment], alpha=0.5, label=f'{treatment} (Data)', s=2, zorder=3)
             ax.errorbar(x, y, yerr=y_sd_vals, fmt='none', color=self.colors[treatment], alpha=0.2,
                        capsize=2, capthick=0.5, elinewidth=0.5, zorder=2)
-            
-            # Graficar curva ajustada si existe
+
             if treatment in self.fitted_params and model_name in self.fitted_params[treatment]:
                 params = self.fitted_params[treatment][model_name]
                 x_smooth = np.linspace(x.min(), x.max(), 300)
                 y_smooth = model_func(x_smooth, *params)
-                
-                # Desnormalizar si es necesario
+
                 if self.current_normalization == 'max':
                     y_smooth *= self.df[dependent_var].max()
                 elif self.current_normalization in ['minmax', 'standard', 'robust']:
@@ -1417,45 +1348,38 @@ class NLM_Analysis:
                     y_smooth = scaler.inverse_transform(y_smooth.reshape(-1, 1)).flatten()
                 
                 ax.plot(x_smooth, y_smooth, color=self.colors[treatment], label=f'{treatment} (Fitted)', linewidth=1.5)
-        
-        # Agregar línea de significancia
-        # Encontrar el rango donde hay significancia
+
         sig_times = sig_df[sig_df['Significant'] == True]['Time'].values
         if len(sig_times) > 0:
             sig_start = sig_times.min()
             sig_end = sig_times.max()
-            
-            # Calcular posición de la línea
+
             y_max = max([max(treatment_data[dependent_var] + treatment_data[y_sd])
                         for treatment_data in [self.df[self.df[categorical_var] == t] 
                                               for t in self.df[categorical_var].unique()]])
-            y_line = y_max + (y_max * 0.05)  # 5% arriba del máximo
-            
-            # Dibujar línea horizontal
+            y_line = y_max + (y_max * 0.05) 
+
             ax.plot([sig_start, sig_end], [y_line, y_line], color='black', linewidth=1)
-            
-            # Dibujar remates verticales en los extremos
-            cap_height = y_max * 0.02  # altura de los remates
+
+            cap_height = y_max * 0.02
             ax.plot([sig_start, sig_start], [y_line - cap_height/2, y_line + cap_height/2], 
                    color='black', linewidth=1)
             ax.plot([sig_end, sig_end], [y_line - cap_height/2, y_line + cap_height/2], 
                    color='black', linewidth=1)
             
-            # Asterisco en el medio
             x_mid = (sig_start + sig_end) / 2
             ax.text(x_mid, y_line + cap_height, '*', ha='center', va='bottom', 
                    fontsize=8, color='black', fontweight='bold')
         
-        # Anotación ΔAUC y CI
+
         ax.text(0.05, 0.95, f'ΔAUC = {delta_auc:.2f} g·day\n95% CI [{ci_lower:.2f}, {ci_upper:.2f}]',
                transform=ax.transAxes, ha='left', va='top', fontsize=6, 
                fontweight='bold', color='black')
-        
-        # Configurar ejes y formato
+
         ax.set_xlabel(name_xaxis, fontsize=8, fontweight='bold')
         ax.set_ylabel(name_yaxis, fontsize=8, fontweight='bold')
         ax.set_xlim(-5, max(self.df[time_var]) + 5)
-        ax.set_ylim(0, 5)  # Límite del eje Y hasta 5
+        ax.set_ylim(0, 5)
         ax.tick_params(axis='both', which='major', labelsize=8, width=2, length=5)
         
         for label in ax.get_xticklabels() + ax.get_yticklabels():
@@ -1464,8 +1388,7 @@ class NLM_Analysis:
         
         for spine in ax.spines.values():
             spine.set_linewidth(2)
-        
-        # Guardar figura
+
         plt.tight_layout()
         fig.savefig(output_dir / 'Growth_Final_Figure.pdf', format='pdf', dpi=300, bbox_inches='tight')
         plt.close(fig)
